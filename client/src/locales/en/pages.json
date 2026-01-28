@@ -1,0 +1,125 @@
+{
+  "home": {
+    "title": "Welcome to AI Consulting Tool",
+    "subtitle": "Generate Proof of Concepts for your migration projects",
+    "getStarted": "Get Started",
+    "features": {
+      "title": "Features",
+      "fileAnalysis": "Intelligent File Analysis",
+      "fileAnalysisDesc": "Upload your files and get automatic analysis with citations",
+      "dynamicQuestions": "Dynamic Questions",
+      "dynamicQuestionsDesc": "POC-focused questions tailored to your specific migration",
+      "aiPowered": "AI-Powered",
+      "aiPoweredDesc": "Leverage Claude AI for accurate migration planning",
+      "instantPoc": "Instant POC Generation",
+      "instantPocDesc": "Generate comprehensive POC documents in seconds"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New Project",
+    "noProjects": "No projects yet",
+    "createFirst": "Create your first project to get started",
+    "list": {
+      "name": "Name",
+      "branches": "Branches",
+      "created": "Created",
+      "lastModified": "Last Modified",
+      "actions": "Actions"
+    }
+  },
+  "projectDetail": {
+    "title": "Project Details",
+    "overview": "Overview",
+    "branches": "Branches",
+    "analysis": "Analysis",
+    "settings": "Settings",
+    "noBranches": "No branches yet",
+    "createBranch": "Create your first branch to start analysis"
+  },
+  "session": {
+    "title": "Analysis Session",
+    "step1": "Upload Files",
+    "step2": "Problem Statement",
+    "step3": "Analysis & Questions",
+    "step4": "POC Generation",
+    "problemStatement": {
+      "title": "Define Problem Statement",
+      "placeholder": "Describe what you want to migrate and why...",
+      "example": "Example: Migrate from BizTalk Server 2013 to Azure Integration Services, focusing on message routing and orchestrations.",
+      "required": "Problem statement is required to proceed"
+    },
+    "taskTypes": {
+      "title": "Select Task Types",
+      "description": "What kind of work does this project involve?",
+      "migration": "Migration",
+      "refactoring": "Refactoring",
+      "newDevelopment": "New Development",
+      "optimization": "Optimization",
+      "integration": "Integration",
+      "testing": "Testing"
+    }
+  },
+  "analysis": {
+    "title": "Analysis",
+    "uploadFiles": "Upload Files",
+    "filesUploaded": "Files Uploaded",
+    "startAnalysis": "Start Analysis",
+    "analyzing": "Analyzing...",
+    "results": "Analysis Results",
+    "extractedInfo": "Extracted Information",
+    "techStack": "Technology Stack",
+    "architecture": "Architecture",
+    "dependencies": "Dependencies"
+  },
+  "conversation": {
+    "title": "Conversation",
+    "instructions": "Answer the questions below to help us understand your migration requirements.",
+    "skipNote": "You can skip any question by typing 'skip', 'n/a', or 'unknown'",
+    "progress": "Progress",
+    "questionsRemaining": "{{count}} question(s) remaining",
+    "allDone": "All done! Ready to generate your POC.",
+    "typeAnswer": "Type your answer here...",
+    "placeholder": "Your answer..."
+  },
+  "poc": {
+    "title": "POC Document",
+    "generate": "Generate POC",
+    "generating": "Generating your Proof of Concept...",
+    "preview": "Preview",
+    "download": "Download",
+    "sections": {
+      "summary": "Summary",
+      "technicalApproach": "Technical Approach",
+      "architecture": "Architecture",
+      "implementation": "Implementation Plan",
+      "risks": "Risks & Mitigation",
+      "timeline": "Timeline",
+      "resources": "Resources Required"
+    },
+    "formats": {
+      "title": "Select POC Format",
+      "business": "Business-Focused",
+      "businessDesc": "Executive summary with business value and ROI",
+      "technical": "Technical-Focused",
+      "technicalDesc": "Detailed technical architecture and implementation",
+      "engineering": "Engineering-Focused",
+      "engineeringDesc": "Engineering IQ agents and detailed technical specs"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "account": "Account",
+    "preferences": "Preferences",
+    "about": "About"
+  },
+  "notFound": {
+    "title": "404 - Page Not Found",
+    "message": "The page you're looking for doesn't exist.",
+    "goHome": "Go Home"
+  }
+}

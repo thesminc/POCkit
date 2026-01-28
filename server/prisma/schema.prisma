@@ -1,0 +1,210 @@
+// Prisma Schema for AICT
+// Uses @@map for all tables and @map for all columns to ensure:
+// - camelCase in TypeScript/Prisma Client
+// - snake_case in PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Project represents a business project or initiative
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  branches Branch[]
+
+  @@map("projects")
+}
+
+// Branch represents a version or variant of a project
+model Branch {
+  id          String   @id @default(uuid())
+  projectId   String   @map("project_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project  Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sessions AnalysisSession[]
+
+  @@map("branches")
+}
+
+// AnalysisSession represents a complete POC generation workflow
+model AnalysisSession {
+  id                   String    @id @default(uuid())
+  branchId             String    @map("branch_id")
+  problemStatement     String?   @map("problem_statement")
+  status               String    @default("created") // created, questions_generated, files_uploaded, analyzed, poc_generated
+  selectedContexts     String[]  @default([]) @map("selected_contexts")
+  engineeringTaskTypes String[]  @default([]) @map("engineering_task_types")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  completedAt          DateTime? @map("completed_at")
+
+  // Relations
+  branch                     Branch                       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  uploadedFiles              UploadedFile[]
+  analysisResults            AnalysisResult[]
+  questionResponses          QuestionResponse[]
+  questionQueue              QuestionQueue[]
+  aiSolutionRecommendations  AISolutionRecommendation[]
+  generatedPocs              GeneratedPoc[]
+  agentExecutions            AgentExecution[]
+  messages                   Message[]
+
+  @@map("analysis_sessions")
+}
+
+// UploadedFile stores information about files uploaded for analysis
+model UploadedFile {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  fileName  String   @map("file_name")
+  filePath  String   @map("file_path")
+  fileType  String   @map("file_type") // docx, pdf, txt
+  fileSize  Int      @map("file_size")
+  content   String   @db.Text // Extracted text content
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("uploaded_files")
+}
+
+// AnalysisResult stores structured findings from file analysis
+model AnalysisResult {
+  id          String   @id @default(uuid())
+  sessionId   String   @map("session_id")
+  category    String   // tech_stack, architecture, requirements, constraints, etc.
+  finding     String   @db.Text
+  source      String?  // Which file this came from
+  confidence  Float?   // 0.0 to 1.0
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("analysis_results")
+}
+
+// QuestionResponse stores Q&A pairs from quick questions phase (legacy - kept for compatibility)
+model QuestionResponse {
+  id         String    @id @default(uuid())
+  sessionId  String    @map("session_id")
+  question   String    @db.Text
+  answer     String?   @db.Text
+  order      Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  answeredAt DateTime? @map("answered_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("question_responses")
+}
+
+// QuestionQueue stores questions for conversational Q&A flow
+// Questions are asked one at a time, with follow-ups generated dynamically
+model QuestionQueue {
+  id         String    @id @default(uuid())
+  sessionId  String    @map("session_id")
+  question   String    @db.Text
+  category   String?   // "initial", "follow_up", "clarification"
+  priority   Int       @default(0)  // Higher = ask sooner
+  status     String    @default("pending") // "pending", "asked", "answered", "skipped"
+  answer     String?   @db.Text
+  askedAt    DateTime? @map("asked_at")
+  answeredAt DateTime? @map("answered_at")
+  parentId   String?   @map("parent_id")  // Links follow-ups to original question
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, status])
+  @@map("question_queue")
+}
+
+// Message stores conversation messages (questions and answers) for UI display
+model Message {
+  id        String   @id @default(uuid())
+  sessionId String   @map("session_id")
+  role      String   // "user" or "assistant"
+  content   String   @db.Text
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// AISolutionRecommendation stores AI solutions discovered via web search
+model AISolutionRecommendation {
+  id          String   @id @default(uuid())
+  sessionId   String   @map("session_id")
+  name        String
+  description String   @db.Text
+  category    String   // llm, computer_vision, nlp, etc.
+  provider    String?  // OpenAI, Anthropic, Azure, etc.
+  url         String?
+  relevance   Float?   // 0.0 to 1.0
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("ai_solution_recommendations")
+}
+
+// GeneratedPoc stores the final POC documents
+model GeneratedPoc {
+  id              String   @id @default(uuid())
+  sessionId       String   @map("session_id")
+  content         String   @db.Text // Full markdown content
+  wordCount       Int      @map("word_count")
+  sectionCount    Int      @map("section_count")
+  citationCount   Int      @map("citation_count")
+  generationTime  Int      @map("generation_time") // milliseconds
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("generated_pocs")
+}
+
+// AgentExecution logs agent runs for debugging and performance tracking
+model AgentExecution {
+  id            String    @id @default(uuid())
+  sessionId     String    @map("session_id")
+  agentName     String    @map("agent_name") // quick_question, file_analysis, poc_generation
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  status        String    @default("running") // running, completed, failed
+  durationMs    Int?      @map("duration_ms")
+  inputTokens   Int?      @map("input_tokens")
+  outputTokens  Int?      @map("output_tokens")
+  errorMessage  String?   @map("error_message") @db.Text
+  metadata      Json?     // Additional agent-specific data
+
+  // Relations
+  session AnalysisSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("agent_executions")
+}

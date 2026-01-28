@@ -1,0 +1,33 @@
+{
+  "forms": {
+    "projectName": {
+      "required": "Project name is required",
+      "minLength": "Project name must be at least 3 characters",
+      "maxLength": "Project name must be at most 100 characters",
+      "invalid": "Project name contains invalid characters"
+    },
+    "branchName": {
+      "required": "Branch name is required",
+      "minLength": "Branch name must be at least 2 characters",
+      "maxLength": "Branch name must be at most 50 characters",
+      "invalid": "Branch name contains invalid characters"
+    },
+    "problemStatement": {
+      "required": "Problem statement is required",
+      "minLength": "Problem statement must be at least 20 characters",
+      "maxLength": "Problem statement must be at most 5000 characters",
+      "tooShort": "Please provide more details about your problem"
+    },
+    "answer": {
+      "required": "Answer is required",
+      "tooShort": "Please provide a more detailed answer"
+    }
+  },
+  "messages": {
+    "pleaseWait": "Please wait...",
+    "processing": "Processing your request...",
+    "almostDone": "Almost done...",
+    "checkingData": "Checking data...",
+    "savingChanges": "Saving changes..."
+  }
+}

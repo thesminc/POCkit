@@ -1,0 +1,91 @@
+{
+  "header": {
+    "title": "AI Consulting Tool",
+    "home": "Home",
+    "projects": "Projects",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "newProject": "New Project",
+    "recentProjects": "Recent Projects",
+    "branches": "Branches",
+    "analysis": "Analysis",
+    "poc": "POC Generation"
+  },
+  "buttons": {
+    "startAnalysis": "Start Analysis",
+    "generatePoc": "Generate POC",
+    "uploadFiles": "Upload Files",
+    "addBranch": "Add Branch",
+    "createProject": "Create Project",
+    "viewDetails": "View Details",
+    "downloadPoc": "Download POC"
+  },
+  "forms": {
+    "projectName": "Project Name",
+    "projectDescription": "Project Description",
+    "branchName": "Branch Name",
+    "problemStatement": "Problem Statement",
+    "selectFiles": "Select Files",
+    "dropFilesHere": "Drop files here or click to browse",
+    "pocFormat": "POC Format",
+    "taskTypes": "Task Types"
+  },
+  "fileUpload": {
+    "title": "Upload Files",
+    "description": "Upload files to analyze for your POC",
+    "dragDrop": "Drag & drop files here",
+    "or": "or",
+    "browse": "Browse Files",
+    "maxSize": "Max file size: {{size}}",
+    "supportedTypes": "Supported types: {{types}}",
+    "uploading": "Uploading {{current}} of {{total}} files...",
+    "uploadComplete": "Upload complete!",
+    "uploadFailed": "Upload failed"
+  },
+  "conversation": {
+    "title": "Conversation",
+    "typeMessage": "Type your message...",
+    "send": "Send",
+    "skipQuestion": "Skip this question",
+    "thinking": "Thinking...",
+    "answerQuestion": "Answer the question above",
+    "allQuestionsComplete": "All questions completed!",
+    "readyForPoc": "Ready to generate POC"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "inProgress": "Analysis in progress...",
+    "complete": "Analysis complete",
+    "filesAnalyzed": "{{count}} file(s) analyzed",
+    "questionsGenerated": "{{count}} question(s) generated",
+    "noFilesUploaded": "No files uploaded yet",
+    "uploadFilesToStart": "Upload files to start analysis"
+  },
+  "poc": {
+    "title": "POC Document",
+    "generating": "Generating POC...",
+    "generationComplete": "POC generation complete",
+    "download": "Download POC",
+    "view": "View POC",
+    "regenerate": "Regenerate POC",
+    "format": {
+      "business": "Business",
+      "technical": "Technical",
+      "engineering": "Engineering"
+    }
+  },
+  "progress": {
+    "step": "Step {{current}} of {{total}}",
+    "percentComplete": "{{percent}}% complete",
+    "questionsAnswered": "{{answered}}/{{total}} questions answered"
+  },
+  "notifications": {
+    "success": "Success!",
+    "error": "Error!",
+    "warning": "Warning!",
+    "info": "Info"
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "skip": "Skip",
+    "close": "Close",
+    "confirm": "Confirm",
+    "upload": "Upload",
+    "download": "Download",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "clear": "Clear",
+    "reset": "Reset"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "loading": "Loading...",
+    "processing": "Processing...",
+    "saving": "Saving...",
+    "uploading": "Uploading..."
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "all": "All",
+    "none": "None",
+    "optional": "Optional",
+    "required": "Required",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "language": "Language"
+  },
+  "time": {
+    "seconds": "seconds",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months",
+    "years": "years",
+    "ago": "ago",
+    "now": "Just now"
+  },
+  "units": {
+    "file": "file",
+    "file_plural": "files",
+    "question": "question",
+    "question_plural": "questions",
+    "answer": "answer",
+    "answer_plural": "answers"
+  }
+}
