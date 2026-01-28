@@ -44,13 +44,17 @@ POCkit/
 │   │   │   ├── tools/             # Agent tools
 │   │   │   │   ├── database-tools.ts    # Prisma operations
 │   │   │   │   ├── file-tools.ts        # File parsing (DOCX, PDF)
-│   │   │   │   ├── framework-tools.ts   # Framework helpers
+│   │   │   │   ├── context-tools.ts     # Smart context detection & loading
+│   │   │   │   ├── recommendation-tools.ts  # Tech stack recommendations
+│   │   │   │   ├── feasibility-tools.ts # Automatic feasibility analysis
+│   │   │   │   ├── validation-tools.ts  # Input validation
 │   │   │   │   └── index.ts
 │   │   │   ├── types/             # TypeScript interfaces
 │   │   │   │   └── index.ts
 │   │   │   ├── quick-question-agent.ts  # Question generation
 │   │   │   ├── file-analysis-agent.ts   # File analysis + AI discovery
-│   │   │   └── poc-generation-agent.ts  # POC generation
+│   │   │   ├── poc-generation-agent.ts  # POC generation
+│   │   │   └── code-context-agent.ts    # Generate context from uploaded code
 │   │   ├── api/
 │   │   │   └── routes/
 │   │   │       └── poc.ts         # RESTful API endpoints
@@ -156,7 +160,9 @@ POCkit/
 │  │  Tools Layer                                    │   │
 │  │  - Database Tools (Prisma operations)          │   │
 │  │  - File Tools (DOCX/PDF parsing)               │   │
-│  │  - Web Search (Google Custom Search API)       │   │
+│  │  - Web Search (Brave Search API)               │   │
+│  │  - Context Tools (smart context detection)     │   │
+│  │  - Recommendation Tools (tech stack scoring)   │   │
 │  └────────────────┬───────────────────────────────┘   │
 └───────────────────┼─────────────────────────────────────┘
                     │
@@ -183,11 +189,12 @@ POCkit/
 
 - **Runtime**: Node.js 20+
 - **Language**: TypeScript 5.0+
-- **AI Model**: Claude 3.7 Sonnet (via Anthropic SDK 0.30+)
+- **AI Model**: Claude Sonnet 4 (via Anthropic SDK 0.30+)
 - **Database**: PostgreSQL with Prisma ORM
 - **Framework**: Express.js
 - **File Processing**: Mammoth (DOCX), pdf-parse (PDF)
-- **Web Search**: Google Custom Search API
+- **Web Search**: Brave Search API (2,000 queries/month free tier)
+- **Testing**: Jest with ts-jest (42 tests)
 - **Logging**: Winston
 
 ### Database Schema
@@ -213,16 +220,22 @@ All tables use `@@map` directives for proper camelCase TypeScript ↔ snake_case
 - Node.js 20+
 - PostgreSQL 14+
 - Anthropic API key
-- Google Custom Search API credentials (optional, for AI solution discovery)
+- Brave Search API key (optional, for AI solution discovery - 2,000 free queries/month)
 ```
 
 ### Installation
 
-Follow these steps to set up the complete AICT system:
+Follow these steps to set up the complete POCkit system:
 
 #### 1. Database Setup
 
 ```bash
+# Ensure PostgreSQL is running
+pg_isready -h 127.0.0.1 -p 5432
+
+# If not running (macOS with Homebrew):
+brew services start postgresql@14
+
 # Create PostgreSQL database
 createdb ai_consultation_v2
 
@@ -235,18 +248,23 @@ CREATE DATABASE ai_consultation_v2;
 #### 2. Server Setup
 
 ```bash
+# Clone the repository (if not already done)
+git clone https://github.com/thesminc/POCkit.git
+cd POCkit
+
 # Navigate to server directory
-cd /Users/louis.b.barber/Documents/agentic-work/POCkit/server
+cd server
 
 # Install dependencies
 npm install
 
 # Configure environment variables
-# Edit server/.env and ensure these are set:
+# Copy the example and edit:
+cp .env.example .env  # If .env.example exists
+# Or create .env with these values:
 # - DATABASE_URL="postgresql://postgres:changeme@127.0.0.1:5432/ai_consultation_v2"
 # - ANTHROPIC_API_KEY="sk-ant-..."
-# - GOOGLE_SEARCH_API_KEY="..." (optional)
-# - GOOGLE_SEARCH_ENGINE_ID="..." (optional)
+# - BRAVE_SEARCH_API_KEY="..." (optional, get free key at https://brave.com/search/api/)
 
 # Run Prisma migrations
 npx prisma migrate dev
@@ -258,15 +276,15 @@ npx prisma generate
 npm run dev
 
 # Server will start on http://localhost:3000
-# Health check: http://localhost:3000/health
+# Health check: curl http://localhost:3000/health
 ```
 
 #### 3. Client Setup
 
 ```bash
 # Open a new terminal
-# Navigate to client directory
-cd /Users/louis.b.barber/Documents/agentic-work/POCkit/client
+# Navigate to client directory (from project root)
+cd client
 
 # Install dependencies
 npm install
@@ -280,32 +298,44 @@ npm run dev
 
 ### Starting the Full System
 
-Use these commands in separate terminals:
+#### Pre-flight Checks
 
-**Terminal 1 - Database (if not already running):**
 ```bash
-# PostgreSQL should already be running as a service
-# Check status: brew services list | grep postgresql
-# Or: pg_ctl status -D /usr/local/var/postgres
+# 1. Kill any existing processes on required ports
+lsof -ti:3000 | xargs kill -9 2>/dev/null  # Backend
+lsof -ti:5173 | xargs kill -9 2>/dev/null  # Frontend
+lsof -ti:5555 | xargs kill -9 2>/dev/null  # Prisma Studio
+
+# 2. Check PostgreSQL is running
+pg_isready -h 127.0.0.1 -p 5432
+# Should output: "127.0.0.1:5432 - accepting connections"
+
+# If PostgreSQL is not running:
+brew services start postgresql@14  # macOS with Homebrew
+# Or: sudo systemctl start postgresql  # Linux
 ```
 
-**Terminal 2 - Backend Server:**
+#### Start Services (use separate terminals)
+
+**Terminal 1 - Backend Server:**
 ```bash
-cd /Users/louis.b.barber/Documents/agentic-work/POCkit/server
+cd server
 npm run dev
-# Wait for: "Server started on port 3000"
+# Wait for: "POCkit API running on port 3000"
+# Health check: curl http://localhost:3000/health
 ```
 
-**Terminal 3 - Frontend Client:**
+**Terminal 2 - Frontend Client:**
 ```bash
-cd /Users/louis.b.barber/Documents/agentic-work/POCkit/client
+cd client
 npm run dev
 # Wait for: "Local: http://localhost:5173/"
+# Open http://localhost:5173 in your browser
 ```
 
-**Terminal 4 - Prisma Studio (Optional):**
+**Terminal 3 - Prisma Studio (Optional):**
 ```bash
-cd /Users/louis.b.barber/Documents/agentic-work/POCkit/server
+cd server
 npm run prisma:studio
 # Opens at: http://localhost:5555
 ```
@@ -453,6 +483,27 @@ Response: {
 
 ## 🧪 Testing
 
+### Run Unit Tests
+
+```bash
+cd server
+
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+**Test Coverage:** 42 tests across:
+- AI Validator Service (anti-hallucination defense)
+- Question Deduplication Service
+- Context Tools (smart context detection)
+- Recommendation Tools (tech stack scoring)
+
 ### Run Integration Test
 
 ```bash
@@ -493,6 +544,35 @@ curl -X POST http://localhost:3000/api/sessions/$SESSION_ID/generate-poc
 curl http://localhost:3000/api/sessions/$SESSION_ID/poc
 ```
 
+## 🚀 Advanced Features
+
+### Smart Context Detection
+Automatically detects relevant context files based on problem statement keywords:
+```typescript
+// Detects Engineering IQ, CognitiveIQ, GCP Repo Analyzer contexts
+const contexts = detectRelevantContexts("Migrate BizTalk to Azure with AI");
+```
+
+### Tech Stack Recommendation Engine
+Scores and recommends technologies based on:
+- Technical Fit: 30%
+- Migration Complexity (inverse): 25%
+- AI/ML Capabilities: 25%
+- Cost Efficiency: 10%
+- Ecosystem Maturity: 10%
+
+### Automatic Feasibility Analysis
+Gap analysis between requirements and capabilities:
+- Parses requirements from problem statement
+- Searches context files for capabilities
+- Returns coverage score and verdict (YES/PARTIAL/NO)
+
+### Code Context Generation
+Generate context files from uploaded codebases:
+- Analyzes code structure (classes, functions, patterns)
+- Extracts agents, tools, services, utilities
+- Creates formatted context file for future POCs
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -503,11 +583,12 @@ DATABASE_URL="postgresql://user:password@host:5432/database"
 
 # Anthropic AI
 ANTHROPIC_API_KEY="sk-ant-..."
-ANTHROPIC_MODEL="claude-3-7-sonnet-latest"
+ANTHROPIC_MODEL="claude-sonnet-4-20250514"
 
-# Google Search (optional, for AI solution discovery)
-GOOGLE_SEARCH_API_KEY="..."
-GOOGLE_SEARCH_ENGINE_ID="..."
+# Brave Search API (optional, for AI solution discovery)
+# Free tier: 2,000 queries/month, 1 query/second
+# Get your API key at: https://brave.com/search/api/
+BRAVE_SEARCH_API_KEY="..."
 
 # Server
 PORT=3000
@@ -579,7 +660,12 @@ npm run prisma:studio
 ### Port Already in Use
 
 ```bash
-# Kill process on port 3000
+# Kill all POCkit-related ports at once
+lsof -ti:3000 | xargs kill -9 2>/dev/null  # Backend API
+lsof -ti:5173 | xargs kill -9 2>/dev/null  # Frontend
+lsof -ti:5555 | xargs kill -9 2>/dev/null  # Prisma Studio
+
+# Or kill a specific port
 lsof -ti:3000 | xargs kill -9
 
 # Or change port in .env
@@ -589,21 +675,49 @@ PORT=3001
 ### Database Connection Issues
 
 ```bash
+# Check if PostgreSQL is running
+pg_isready -h 127.0.0.1 -p 5432
+
+# Start PostgreSQL (macOS with Homebrew)
+brew services start postgresql@14
+
+# Start PostgreSQL (Linux)
+sudo systemctl start postgresql
+
 # Test connection
 psql -h 127.0.0.1 -U postgres -d ai_consultation_v2
 
-# Reset database
+# Reset database (WARNING: deletes all data)
+cd server
 npx prisma migrate reset
+
+# Regenerate Prisma client
+npx prisma generate
 ```
 
 ### File Upload Errors
 
 ```bash
 # Ensure upload directory exists
-mkdir -p uploads
+cd server
+mkdir -p uploads outputs
 
 # Check permissions
-chmod 755 uploads
+chmod 755 uploads outputs
+```
+
+### Server Won't Start
+
+```bash
+# Check TypeScript compilation
+cd server
+npx tsc --noEmit
+
+# Check for missing dependencies
+npm install
+
+# Verify environment variables
+cat .env | grep -E "DATABASE_URL|ANTHROPIC_API_KEY"
 ```
 
 ## 📝 Development
@@ -628,11 +742,11 @@ chmod 755 uploads
 # Build TypeScript
 npm run build
 
-# Format code (if configured)
-npm run format
+# Run tests
+npm test
 
-# Lint code (if configured)
-npm run lint
+# TypeScript type check
+npx tsc --noEmit
 ```
 
 ## 📄 License

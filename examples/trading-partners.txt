@@ -1,0 +1,33 @@
+Trading Partner Summary (50 partners)
+
+Tier 1 Partners (High Volume - 15 partners):
+- Walmart: EDI X12 850/855/856/810, AS2 transport
+- Amazon: EDI X12 + REST API hybrid
+- Target: EDI X12, VAN connection (Sterling)
+- Home Depot: EDI EDIFACT, SFTP transport
+- Costco: EDI X12, AS2 transport
+
+Tier 2 Partners (Medium Volume - 20 partners):
+- Regional distributors using SFTP
+- Smaller retailers using EDI X12
+
+Tier 3 Partners (Low Volume - 15 partners):
+- Small vendors using email/CSV
+- New partners in onboarding
+
+Connection Methods:
+- AS2: 25 partners
+- SFTP: 15 partners
+- VAN (Sterling): 8 partners
+- Direct Connect: 2 partners
+
+EDI Standards:
+- X12 (4010, 5010): 40 partners
+- EDIFACT: 10 partners
+
+Document Types:
+- 850 Purchase Order: 45 partners
+- 855 PO Acknowledgment: 40 partners
+- 856 ASN: 42 partners
+- 810 Invoice: 38 partners
+- 997 Functional Ack: All partners

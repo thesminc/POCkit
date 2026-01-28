@@ -6,18 +6,18 @@
  * - PDF (.pdf) - Professional styled document
  */
 
-import { PrismaClient } from '@prisma/client';
-import { createLogger } from '../config/logger';
-import { pdfConverter } from './pdf-converter';
-import fs from 'fs/promises';
-import path from 'path';
+import { PrismaClient } from "@prisma/client";
+import { createLogger } from "../config/logger";
+import { pdfConverter } from "./pdf-converter";
+import fs from "fs/promises";
+import path from "path";
 
 const prisma = new PrismaClient();
 const logger = createLogger();
 
 export interface ExportRequest {
   pocId: string;
-  format: 'markdown' | 'pdf';
+  format: "markdown" | "pdf";
 }
 
 export interface ExportResult {
@@ -31,7 +31,7 @@ export interface ExportResult {
  * Exporter - Export POC documents to various formats
  */
 export class Exporter {
-  private readonly exportDir = path.join(__dirname, '../../exports');
+  private readonly exportDir = path.join(__dirname, "../../exports");
 
   constructor() {
     // Ensure export directory exists
@@ -42,7 +42,7 @@ export class Exporter {
     try {
       await fs.mkdir(this.exportDir, { recursive: true });
     } catch (error: any) {
-      logger.error('Failed to create export directory', {
+      logger.error("Failed to create export directory", {
         error: error.message,
       });
     }
@@ -53,7 +53,7 @@ export class Exporter {
    */
   async exportPOC(request: ExportRequest): Promise<ExportResult> {
     try {
-      logger.info('Starting POC export', {
+      logger.info("Starting POC export", {
         pocId: request.pocId,
         format: request.format,
       });
@@ -73,17 +73,17 @@ export class Exporter {
       let result: ExportResult;
 
       switch (request.format) {
-        case 'markdown':
+        case "markdown":
           result = await this.exportMarkdown(poc);
           break;
-        case 'pdf':
+        case "pdf":
           result = await this.exportPDF(poc);
           break;
         default:
           throw new Error(`Unsupported format: ${request.format}`);
       }
 
-      logger.info('POC export completed', {
+      logger.info("POC export completed", {
         pocId: request.pocId,
         format: request.format,
         fileName: result.fileName,
@@ -91,7 +91,7 @@ export class Exporter {
 
       return result;
     } catch (error: any) {
-      logger.error('POC export failed', {
+      logger.error("POC export failed", {
         pocId: request.pocId,
         format: request.format,
         error: error.message,
@@ -104,15 +104,15 @@ export class Exporter {
    * Export to Markdown
    */
   private async exportMarkdown(poc: any): Promise<ExportResult> {
-    const fileName = `POC-${poc.sessionId.substring(0, 8)}-${new Date().toISOString().split('T')[0]}.md`;
+    const fileName = `POC-${poc.sessionId.substring(0, 8)}-${new Date().toISOString().split("T")[0]}.md`;
     const filePath = path.join(this.exportDir, fileName);
 
-    await fs.writeFile(filePath, poc.content, 'utf-8');
+    await fs.writeFile(filePath, poc.content, "utf-8");
 
     return {
       filePath,
       fileName,
-      mimeType: 'text/markdown',
+      mimeType: "text/markdown",
     };
   }
 
@@ -120,7 +120,7 @@ export class Exporter {
    * Export to PDF
    */
   private async exportPDF(poc: any): Promise<ExportResult> {
-    const fileName = `POC-${poc.sessionId.substring(0, 8)}-${new Date().toISOString().split('T')[0]}.pdf`;
+    const fileName = `POC-${poc.sessionId.substring(0, 8)}-${new Date().toISOString().split("T")[0]}.pdf`;
     const filePath = path.join(this.exportDir, fileName);
 
     // Add cover page metadata to markdown
@@ -128,17 +128,17 @@ export class Exporter {
 
     // Convert to PDF using pdf-converter service
     await pdfConverter.convertMarkdownToPDF(enhancedMarkdown, filePath, {
-      format: 'A4',
+      format: "A4",
       margin: {
-        top: '1in',
-        right: '1in',
-        bottom: '1in',
-        left: '1in',
+        top: "1in",
+        right: "1in",
+        bottom: "1in",
+        left: "1in",
       },
       displayHeaderFooter: true,
       headerTemplate: `
         <div style="font-size: 9px; text-align: right; width: 100%; padding-right: 1in; color: #666;">
-          <span>POC Studio</span>
+          <span>POCkit</span>
         </div>
       `,
       footerTemplate: `
@@ -154,7 +154,7 @@ export class Exporter {
     return {
       filePath,
       fileName,
-      mimeType: 'application/pdf',
+      mimeType: "application/pdf",
       fileSize,
     };
   }
@@ -163,10 +163,10 @@ export class Exporter {
    * Add cover page and metadata to markdown for PDF export
    */
   private addPDFCoverPage(poc: any): string {
-    const date = new Date().toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    const date = new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
 
     const coverPage = `
@@ -204,13 +204,13 @@ export class Exporter {
         if (now - stats.mtimeMs > maxAge) {
           await fs.unlink(filePath);
           deletedCount++;
-          logger.info('Deleted old export file', { file });
+          logger.info("Deleted old export file", { file });
         }
       }
 
       return deletedCount;
     } catch (error: any) {
-      logger.error('Failed to cleanup exports', { error: error.message });
+      logger.error("Failed to cleanup exports", { error: error.message });
       throw error;
     }
   }

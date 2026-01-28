@@ -20,7 +20,7 @@ const logger = createLogger();
 const CONTEXT_DIR = path.join(__dirname, '../../../../context');
 
 // ============================================================================
-// CONTEXT FILE METADATA & AUTO-DETECTION
+// CONTEXT FILE METADATA
 // ============================================================================
 
 /**
@@ -31,12 +31,12 @@ export interface ContextFileMetadata {
   filename: string;
   name: string;
   description: string;
-  keywords: string[];
   defaultSections: string[];
 }
 
 /**
- * Available context files with metadata for smart detection
+ * Available context files with metadata
+ * Users manually select these in the UI
  */
 export const AVAILABLE_CONTEXTS: ContextFileMetadata[] = [
   {
@@ -44,21 +44,6 @@ export const AVAILABLE_CONTEXTS: ContextFileMetadata[] = [
     filename: 'context_engineering_iq.md',
     name: 'Engineering IQ',
     description: 'POC agent catalog for code analysis, testing, security, and development workflows',
-    keywords: [
-      // Analysis types
-      'code', 'codebase', 'repository', 'analysis', 'architecture', 'technical',
-      'software', 'development', 'dev', 'engineering',
-      // Testing
-      'test', 'testing', 'qa', 'qe', 'quality', 'automation',
-      // Security
-      'security', 'devsecops', 'audit', 'compliance', 'vulnerability',
-      // Features
-      'feature', 'requirement', 'product', 'documentation',
-      // Tools
-      'git', 'jira', 'diagram', 'file',
-      // Migration specific
-      'migration', 'modernization', 'legacy', 'refactor', 'biztalk'
-    ],
     defaultSections: ['Quick Reference', 'Agent Categories', 'Available Agents']
   },
   {
@@ -66,16 +51,6 @@ export const AVAILABLE_CONTEXTS: ContextFileMetadata[] = [
     filename: 'context_cognitive_iq.md',
     name: 'CognitiveIQ',
     description: 'Knowledge graph and semantic analysis agents for AI reasoning',
-    keywords: [
-      // Core capabilities
-      'cognitive', 'knowledge', 'graph', 'semantic', 'reasoning',
-      'ai', 'artificial intelligence', 'ml', 'machine learning',
-      // Features
-      'memory', 'symbol', 'search', 'path', 'store',
-      'natural language', 'nlp', 'understanding',
-      // Use cases
-      'knowledge base', 'ontology', 'inference', 'context'
-    ],
     defaultSections: ['Overview', 'Available Agents', 'Configuration']
   },
   {
@@ -83,62 +58,9 @@ export const AVAILABLE_CONTEXTS: ContextFileMetadata[] = [
     filename: 'context_gcp_repo_analyzer.md',
     name: 'GCP Repo Analyzer',
     description: 'Google Cloud Platform repository analysis and caching tools',
-    keywords: [
-      // Platform
-      'gcp', 'google', 'google cloud', 'cloud platform',
-      // Features
-      'repository', 'repo', 'cache', 'caching', 'directory',
-      'report', 'generate', 'query', 'analyze',
-      // Cloud specific
-      'cloud', 'infrastructure', 'deployment', 'devops',
-      // Technologies
-      'terraform', 'kubernetes', 'k8s', 'docker', 'container'
-    ],
     defaultSections: ['Overview', 'Available Tools', 'Usage Patterns']
   }
 ];
-
-/**
- * Detect relevant context files based on problem statement keywords
- * Returns context IDs sorted by relevance score
- */
-export function detectRelevantContexts(problemStatement: string): string[] {
-  if (!problemStatement || problemStatement.trim().length === 0) {
-    return [];
-  }
-
-  const statement = problemStatement.toLowerCase();
-  const scores: { id: string; score: number; name: string }[] = [];
-
-  for (const context of AVAILABLE_CONTEXTS) {
-    let score = 0;
-
-    // Check each keyword
-    for (const keyword of context.keywords) {
-      if (statement.includes(keyword.toLowerCase())) {
-        // Longer keywords are more specific, give them higher weight
-        score += keyword.length > 5 ? 2 : 1;
-      }
-    }
-
-    if (score > 0) {
-      scores.push({ id: context.id, score, name: context.name });
-    }
-  }
-
-  // Sort by score descending and return context IDs
-  scores.sort((a, b) => b.score - a.score);
-
-  const detected = scores.map(s => s.id);
-
-  logger.info('Detected relevant contexts from problem statement', {
-    problemStatementPreview: problemStatement.substring(0, 100),
-    detected,
-    scores: scores.map(s => `${s.name}: ${s.score}`)
-  });
-
-  return detected;
-}
 
 /**
  * Get list of available context files with metadata
@@ -220,31 +142,18 @@ export async function loadContextSections(
 }
 
 /**
- * Load relevant context with smart detection and selective sections
- * This is the main function for Phase 2 enhanced context loading
+ * Load context from manually selected context IDs
+ * Users select contexts in the UI - no auto-detection
  */
-export async function loadRelevantContext(
-  problemStatement: string,
-  manuallySelectedContexts?: string[],
-  maxContexts: number = 2
+export async function loadSelectedContexts(
+  contextIds: string[]
 ): Promise<string> {
-  // Use manually selected contexts if provided, otherwise auto-detect
-  let contextIds: string[];
-
-  if (manuallySelectedContexts && manuallySelectedContexts.length > 0) {
-    contextIds = manuallySelectedContexts;
-    logger.info('Using manually selected contexts', { contextIds });
-  } else {
-    contextIds = detectRelevantContexts(problemStatement);
-    // Limit to top N most relevant
-    contextIds = contextIds.slice(0, maxContexts);
-    logger.info('Auto-detected contexts', { contextIds, maxContexts });
-  }
-
-  if (contextIds.length === 0) {
-    logger.info('No relevant contexts detected');
+  if (!contextIds || contextIds.length === 0) {
+    logger.info('No contexts selected');
     return '';
   }
+
+  logger.info('Loading manually selected contexts', { contextIds });
 
   // Load sections from each context
   const contents: string[] = [];

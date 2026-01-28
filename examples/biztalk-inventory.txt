@@ -1,0 +1,33 @@
+BizTalk Server 2016 Enterprise Edition
+Host: BIZTALK-PROD-01, BIZTALK-PROD-02 (clustered)
+Database: SQL Server 2016 on SQLCLUSTER-01
+
+Orchestrations (200 total):
+- Order Processing: 45 orchestrations
+- Invoice Processing: 32 orchestrations
+- Shipping Notifications: 28 orchestrations
+- Inventory Sync: 35 orchestrations
+- Partner Onboarding: 20 orchestrations
+- Error Handling: 40 orchestrations
+
+Adapters in Use:
+- FILE adapter: 85 receive/send ports
+- FTP adapter: 45 receive/send ports
+- SFTP adapter: 30 receive/send ports
+- SQL adapter: 60 receive/send ports
+- WCF-SQL adapter: 25 receive/send ports
+- WCF-WebHttp adapter: 40 receive/send ports
+- EDI adapter: 50 trading partners
+
+Message Volume:
+- Daily messages: 150,000
+- Peak hour: 25,000 messages
+- Average message size: 50KB
+- Largest message: 15MB (batch files)
+
+Current Issues:
+- High licensing costs
+- Limited scalability
+- Complex deployment process
+- Difficult to monitor end-to-end
+- Skills gap in team

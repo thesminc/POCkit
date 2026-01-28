@@ -28,11 +28,10 @@ export {
   validationTools,
 } from './validation-tools';
 
-// Phase 2: Enhanced Context Tools
+// Phase 2: Context Tools (Manual Selection)
 export {
-  detectRelevantContexts,
   loadContextSections,
-  loadRelevantContext,
+  loadSelectedContexts,
   searchContextsForAgents,
   getAvailableContexts,
   loadContextContents,
