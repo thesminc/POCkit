@@ -163,7 +163,7 @@ async function cleanupTestData() {
 
 async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('  AICT API Endpoint Verification');
+  console.log('  POCkit API Endpoint Verification');
   console.log('  Testing 34 endpoints identified from client analysis');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 

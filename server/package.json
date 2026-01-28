@@ -7,6 +7,9 @@
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -41,12 +44,15 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.0",
+    "@types/jest": "^30.0.0",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.0.0",
     "@types/pdf-parse": "^1.1.4",
     "@types/puppeteer": "^5.4.7",
     "@types/uuid": "^9.0.0",
+    "jest": "^30.2.0",
     "prisma": "^6.17.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"

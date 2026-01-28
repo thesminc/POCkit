@@ -1,6 +1,6 @@
 /**
  * Validation Tools for Claude Agents
- * Migrated from AICT
+ * POCkit Tool
  *
  * Provides validation utilities for agent outputs including:
  * - JSON schema validation

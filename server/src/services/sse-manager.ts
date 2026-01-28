@@ -1,6 +1,6 @@
 /**
  * SSE Manager - Server-Sent Events for real-time updates
- * Migrated from AICT
+ * POCkit Service
  *
  * Usage:
  * - Client connects to /api/sessions/:sessionId/events

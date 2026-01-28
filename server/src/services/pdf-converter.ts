@@ -1,6 +1,6 @@
 /**
  * PDF Converter Service
- * Migrated from AICT
+ * POCkit Service
  *
  * Converts Markdown POC documents to PDF format using:
  * - marked: Markdown to HTML conversion

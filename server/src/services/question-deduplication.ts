@@ -1,6 +1,6 @@
 /**
  * Question Deduplication Service
- * Migrated from AICT
+ * POCkit Service
  *
  * Uses semantic matching to avoid asking redundant questions
  * that have already been answered in different wording.

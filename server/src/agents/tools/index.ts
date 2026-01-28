@@ -27,3 +27,37 @@ export {
   validateConfidenceScore,
   validationTools,
 } from './validation-tools';
+
+// Phase 2: Enhanced Context Tools
+export {
+  detectRelevantContexts,
+  loadContextSections,
+  loadRelevantContext,
+  searchContextsForAgents,
+  getAvailableContexts,
+  loadContextContents,
+  buildContextPrompt,
+  getTaskTypePrompts,
+  AVAILABLE_CONTEXTS,
+  TASK_TYPE_PROMPTS,
+  type ContextFileMetadata,
+  type ContextSearchResult,
+} from './context-tools';
+
+// Phase 3: Tech Stack Recommendation Engine
+export {
+  recommendTools,
+  getQuickRecommendations,
+  type TechStackItem,
+  type ToolRecommendation,
+} from './recommendation-tools';
+
+// Phase 3: Automatic Feasibility Analysis
+export {
+  analyzeFeasibility,
+  quickFeasibilityCheck,
+  type Requirement,
+  type Capability,
+  type Gap,
+  type FeasibilityResult,
+} from './feasibility-tools';

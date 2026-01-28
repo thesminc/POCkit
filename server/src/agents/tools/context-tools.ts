@@ -3,6 +3,11 @@
  *
  * Tools for loading and processing context files and engineering task types.
  * Used by ConversationAgent to generate context-aware questions.
+ *
+ * Phase 2 Enhancements:
+ * - Smart context detection from problem statement
+ * - Selective section loading (reduced token usage)
+ * - Context search and filtering by keywords
  */
 
 import { promises as fs } from 'fs';
@@ -14,8 +19,337 @@ const logger = createLogger();
 // Path to context files directory
 const CONTEXT_DIR = path.join(__dirname, '../../../../context');
 
-// Engineering task type definitions with question focus areas
-// IDs must match client/src/constants/engineeringTaskTypes.ts
+// ============================================================================
+// CONTEXT FILE METADATA & AUTO-DETECTION
+// ============================================================================
+
+/**
+ * Metadata for available context files
+ */
+export interface ContextFileMetadata {
+  id: string;
+  filename: string;
+  name: string;
+  description: string;
+  keywords: string[];
+  defaultSections: string[];
+}
+
+/**
+ * Available context files with metadata for smart detection
+ */
+export const AVAILABLE_CONTEXTS: ContextFileMetadata[] = [
+  {
+    id: 'context_engineering_iq',
+    filename: 'context_engineering_iq.md',
+    name: 'Engineering IQ',
+    description: 'POC agent catalog for code analysis, testing, security, and development workflows',
+    keywords: [
+      // Analysis types
+      'code', 'codebase', 'repository', 'analysis', 'architecture', 'technical',
+      'software', 'development', 'dev', 'engineering',
+      // Testing
+      'test', 'testing', 'qa', 'qe', 'quality', 'automation',
+      // Security
+      'security', 'devsecops', 'audit', 'compliance', 'vulnerability',
+      // Features
+      'feature', 'requirement', 'product', 'documentation',
+      // Tools
+      'git', 'jira', 'diagram', 'file',
+      // Migration specific
+      'migration', 'modernization', 'legacy', 'refactor', 'biztalk'
+    ],
+    defaultSections: ['Quick Reference', 'Agent Categories', 'Available Agents']
+  },
+  {
+    id: 'context_cognitive_iq',
+    filename: 'context_cognitive_iq.md',
+    name: 'CognitiveIQ',
+    description: 'Knowledge graph and semantic analysis agents for AI reasoning',
+    keywords: [
+      // Core capabilities
+      'cognitive', 'knowledge', 'graph', 'semantic', 'reasoning',
+      'ai', 'artificial intelligence', 'ml', 'machine learning',
+      // Features
+      'memory', 'symbol', 'search', 'path', 'store',
+      'natural language', 'nlp', 'understanding',
+      // Use cases
+      'knowledge base', 'ontology', 'inference', 'context'
+    ],
+    defaultSections: ['Overview', 'Available Agents', 'Configuration']
+  },
+  {
+    id: 'context_gcp_repo_analyzer',
+    filename: 'context_gcp_repo_analyzer.md',
+    name: 'GCP Repo Analyzer',
+    description: 'Google Cloud Platform repository analysis and caching tools',
+    keywords: [
+      // Platform
+      'gcp', 'google', 'google cloud', 'cloud platform',
+      // Features
+      'repository', 'repo', 'cache', 'caching', 'directory',
+      'report', 'generate', 'query', 'analyze',
+      // Cloud specific
+      'cloud', 'infrastructure', 'deployment', 'devops',
+      // Technologies
+      'terraform', 'kubernetes', 'k8s', 'docker', 'container'
+    ],
+    defaultSections: ['Overview', 'Available Tools', 'Usage Patterns']
+  }
+];
+
+/**
+ * Detect relevant context files based on problem statement keywords
+ * Returns context IDs sorted by relevance score
+ */
+export function detectRelevantContexts(problemStatement: string): string[] {
+  if (!problemStatement || problemStatement.trim().length === 0) {
+    return [];
+  }
+
+  const statement = problemStatement.toLowerCase();
+  const scores: { id: string; score: number; name: string }[] = [];
+
+  for (const context of AVAILABLE_CONTEXTS) {
+    let score = 0;
+
+    // Check each keyword
+    for (const keyword of context.keywords) {
+      if (statement.includes(keyword.toLowerCase())) {
+        // Longer keywords are more specific, give them higher weight
+        score += keyword.length > 5 ? 2 : 1;
+      }
+    }
+
+    if (score > 0) {
+      scores.push({ id: context.id, score, name: context.name });
+    }
+  }
+
+  // Sort by score descending and return context IDs
+  scores.sort((a, b) => b.score - a.score);
+
+  const detected = scores.map(s => s.id);
+
+  logger.info('Detected relevant contexts from problem statement', {
+    problemStatementPreview: problemStatement.substring(0, 100),
+    detected,
+    scores: scores.map(s => `${s.name}: ${s.score}`)
+  });
+
+  return detected;
+}
+
+/**
+ * Get list of available context files with metadata
+ */
+export function getAvailableContexts(): ContextFileMetadata[] {
+  return AVAILABLE_CONTEXTS;
+}
+
+// ============================================================================
+// SELECTIVE SECTION LOADING
+// ============================================================================
+
+/**
+ * Load specific sections from a context file
+ * More efficient than loading entire file (reduces tokens)
+ */
+export async function loadContextSections(
+  contextId: string,
+  sectionNames?: string[]
+): Promise<string> {
+  const context = AVAILABLE_CONTEXTS.find(c => c.id === contextId);
+  if (!context) {
+    logger.warn('Context not found', { contextId });
+    return '';
+  }
+
+  try {
+    const filePath = path.join(CONTEXT_DIR, context.filename);
+    const content = await fs.readFile(filePath, 'utf-8');
+
+    // If no specific sections requested, use default sections
+    const sectionsToLoad = sectionNames && sectionNames.length > 0
+      ? sectionNames
+      : context.defaultSections;
+
+    // Extract only requested sections
+    const extractedSections: string[] = [];
+    const allSections = content.split(/^##\s+/m);
+
+    // Always include the header (first section with # title)
+    const headerMatch = content.match(/^#\s+[^\n]+/);
+    if (headerMatch) {
+      extractedSections.push(headerMatch[0]);
+    }
+
+    for (const section of allSections) {
+      if (!section.trim()) continue;
+
+      const sectionTitle = section.split('\n')[0].trim().toLowerCase();
+
+      for (const requested of sectionsToLoad) {
+        if (sectionTitle.includes(requested.toLowerCase())) {
+          extractedSections.push('## ' + section);
+          break;
+        }
+      }
+    }
+
+    const result = extractedSections.join('\n\n');
+
+    logger.info('Loaded context sections', {
+      contextId,
+      contextName: context.name,
+      requestedSections: sectionsToLoad,
+      loadedCount: extractedSections.length,
+      originalSize: content.length,
+      loadedSize: result.length,
+      reduction: `${Math.round((1 - result.length / content.length) * 100)}%`
+    });
+
+    return result;
+  } catch (error: any) {
+    logger.error('Failed to load context sections', {
+      contextId,
+      error: error.message
+    });
+    return '';
+  }
+}
+
+/**
+ * Load relevant context with smart detection and selective sections
+ * This is the main function for Phase 2 enhanced context loading
+ */
+export async function loadRelevantContext(
+  problemStatement: string,
+  manuallySelectedContexts?: string[],
+  maxContexts: number = 2
+): Promise<string> {
+  // Use manually selected contexts if provided, otherwise auto-detect
+  let contextIds: string[];
+
+  if (manuallySelectedContexts && manuallySelectedContexts.length > 0) {
+    contextIds = manuallySelectedContexts;
+    logger.info('Using manually selected contexts', { contextIds });
+  } else {
+    contextIds = detectRelevantContexts(problemStatement);
+    // Limit to top N most relevant
+    contextIds = contextIds.slice(0, maxContexts);
+    logger.info('Auto-detected contexts', { contextIds, maxContexts });
+  }
+
+  if (contextIds.length === 0) {
+    logger.info('No relevant contexts detected');
+    return '';
+  }
+
+  // Load sections from each context
+  const contents: string[] = [];
+
+  for (const contextId of contextIds) {
+    const context = AVAILABLE_CONTEXTS.find(c => c.id === contextId);
+    if (!context) continue;
+
+    const sectionContent = await loadContextSections(contextId);
+    if (sectionContent) {
+      contents.push(`### Framework: ${context.name}\n\n${sectionContent}`);
+    }
+  }
+
+  return contents.join('\n\n---\n\n');
+}
+
+// ============================================================================
+// CONTEXT SEARCH
+// ============================================================================
+
+/**
+ * Search result from context files
+ */
+export interface ContextSearchResult {
+  contextId: string;
+  contextName: string;
+  section: string;
+  content: string;
+  score: number;
+}
+
+/**
+ * Search context files for agents/tools matching keywords
+ * Returns relevant sections from matching context files
+ */
+export async function searchContextsForAgents(
+  keywords: string[],
+  maxResults: number = 10
+): Promise<ContextSearchResult[]> {
+  const results: ContextSearchResult[] = [];
+
+  for (const context of AVAILABLE_CONTEXTS) {
+    try {
+      const filePath = path.join(CONTEXT_DIR, context.filename);
+      const content = await fs.readFile(filePath, 'utf-8');
+
+      // Split into sections by ## headers
+      const sections = content.split(/^##\s+/m).filter(s => s.trim());
+
+      for (const section of sections) {
+        const sectionTitle = section.split('\n')[0].trim();
+        const sectionContent = section;
+
+        // Score this section based on keyword matches
+        let score = 0;
+        const lowerContent = sectionContent.toLowerCase();
+
+        for (const keyword of keywords) {
+          const regex = new RegExp(keyword.toLowerCase(), 'gi');
+          const matches = lowerContent.match(regex);
+          if (matches) {
+            score += matches.length;
+          }
+        }
+
+        if (score > 0) {
+          results.push({
+            contextId: context.id,
+            contextName: context.name,
+            section: sectionTitle,
+            content: sectionContent.substring(0, 2000), // Limit content size
+            score
+          });
+        }
+      }
+    } catch (error: any) {
+      logger.warn('Failed to search context file', {
+        contextId: context.id,
+        error: error.message
+      });
+    }
+  }
+
+  // Sort by score and limit results
+  results.sort((a, b) => b.score - a.score);
+  const topResults = results.slice(0, maxResults);
+
+  logger.info('Context search completed', {
+    keywords,
+    totalMatches: results.length,
+    returned: topResults.length
+  });
+
+  return topResults;
+}
+
+// ============================================================================
+// ENGINEERING TASK TYPES (Existing functionality)
+// ============================================================================
+
+/**
+ * Engineering task type definitions with question focus areas
+ * IDs must match client/src/constants/engineeringTaskTypes.ts
+ */
 export const TASK_TYPE_PROMPTS: Record<string, string> = {
   'software_analysis': `
 Focus on software codebase analysis questions:
@@ -93,44 +427,6 @@ Focus on general AI solution questions:
 };
 
 /**
- * Load content from selected context files
- */
-export async function loadContextContents(contextIds: string[]): Promise<string> {
-  if (!contextIds || contextIds.length === 0) {
-    return '';
-  }
-
-  logger.info('Loading context files', { contextIds });
-
-  const contents: string[] = [];
-
-  for (const contextId of contextIds) {
-    try {
-      // Add .md extension if not present
-      const filename = contextId.endsWith('.md') ? contextId : `${contextId}.md`;
-      const filePath = path.join(CONTEXT_DIR, filename);
-
-      const content = await fs.readFile(filePath, 'utf-8');
-
-      // Extract title for context header
-      const titleMatch = content.match(/^#\s+(.+)$/m);
-      const title = titleMatch ? titleMatch[1] : contextId;
-
-      contents.push(`### Context: ${title}\n\n${content}`);
-
-      logger.info('Loaded context file', { contextId, title });
-    } catch (error: any) {
-      logger.warn('Failed to load context file', {
-        contextId,
-        error: error.message
-      });
-    }
-  }
-
-  return contents.join('\n\n---\n\n');
-}
-
-/**
  * Get prompt guidance for selected engineering task types
  */
 export function getTaskTypePrompts(taskTypes: string[]): string {
@@ -152,8 +448,52 @@ export function getTaskTypePrompts(taskTypes: string[]): string {
   return prompts.join('\n\n');
 }
 
+// ============================================================================
+// LEGACY FUNCTIONS (Maintained for backward compatibility)
+// ============================================================================
+
 /**
- * Build complete context section for agent prompt
+ * Load content from selected context files (LEGACY)
+ * Use loadRelevantContext() or loadContextSections() for better performance
+ */
+export async function loadContextContents(contextIds: string[]): Promise<string> {
+  if (!contextIds || contextIds.length === 0) {
+    return '';
+  }
+
+  logger.info('Loading context files (legacy full load)', { contextIds });
+
+  const contents: string[] = [];
+
+  for (const contextId of contextIds) {
+    try {
+      // Add .md extension if not present
+      const filename = contextId.endsWith('.md') ? contextId : `${contextId}.md`;
+      const filePath = path.join(CONTEXT_DIR, filename);
+
+      const content = await fs.readFile(filePath, 'utf-8');
+
+      // Extract title for context header
+      const titleMatch = content.match(/^#\s+(.+)$/m);
+      const title = titleMatch ? titleMatch[1] : contextId;
+
+      contents.push(`### Context: ${title}\n\n${content}`);
+
+      logger.info('Loaded context file', { contextId, title, size: content.length });
+    } catch (error: any) {
+      logger.warn('Failed to load context file', {
+        contextId,
+        error: error.message
+      });
+    }
+  }
+
+  return contents.join('\n\n---\n\n');
+}
+
+/**
+ * Build complete context section for agent prompt (LEGACY)
+ * Consider using loadRelevantContext() for auto-detection and optimization
  */
 export async function buildContextPrompt(
   selectedContexts: string[],

@@ -40,7 +40,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
-    service: 'AICT POC Generation API',
+    service: 'POCkit API',
     timestamp: new Date().toISOString(),
   });
 });

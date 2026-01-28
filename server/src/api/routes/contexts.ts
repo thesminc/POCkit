@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createLogger } from '../../config/logger';
+import { codeContextAgent } from '../../agents/code-context-agent';
 
 const router = Router();
 const logger = createLogger();
@@ -102,6 +103,103 @@ router.get('/:filename', async (req: Request, res: Response) => {
     res.status(404).json({
       success: false,
       error: 'Context file not found',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * POST /api/contexts/generate/:sessionId
+ * Generate a context file from uploaded code files
+ * Phase 3 Enhancement: Code Context Agent
+ */
+router.post('/generate/:sessionId', async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+
+    logger.info('Starting code context generation', { sessionId });
+
+    const result = await codeContextAgent.generateContext(sessionId);
+
+    res.json({
+      success: true,
+      message: 'Context file generated successfully',
+      ...result,
+    });
+  } catch (error: any) {
+    logger.error('Code context generation failed', {
+      sessionId: req.params.sessionId,
+      error: error.message,
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate context file',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * DELETE /api/contexts/user/:contextId
+ * Delete a user-generated context file
+ */
+router.delete('/user/:contextId', async (req: Request, res: Response) => {
+  try {
+    const { contextId } = req.params;
+
+    // Only allow deleting user-generated contexts
+    if (!contextId.startsWith('context_user_')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Can only delete user-generated context files',
+      });
+    }
+
+    const deleted = await codeContextAgent.deleteContext(contextId);
+
+    if (deleted) {
+      res.json({
+        success: true,
+        message: 'Context file deleted',
+        contextId,
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Context file not found or could not be deleted',
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to delete context file', {
+      contextId: req.params.contextId,
+      error: error.message,
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete context file',
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/contexts/user
+ * List all user-generated context files
+ */
+router.get('/user', async (req: Request, res: Response) => {
+  try {
+    const userContexts = await codeContextAgent.listUserContexts();
+
+    res.json({
+      success: true,
+      contexts: userContexts,
+      count: userContexts.length,
+    });
+  } catch (error: any) {
+    logger.error('Failed to list user contexts', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to list user contexts',
       message: error.message,
     });
   }

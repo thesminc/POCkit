@@ -153,7 +153,7 @@ Return JSON with this EXACT structure:
 ## Critical Rules
 
 ### ALWAYS DO ✅
-- ✅ Execute 10+ web searches per technology
+- ✅ Execute smart, targeted web searches (0-1 if platform specified, 2-3 if open)
 - ✅ Search cloud, SaaS, vendor-specific, and open source solutions
 - ✅ Provide exact quotes with file:line references
 - ✅ Assign realistic confidence scores
@@ -161,15 +161,16 @@ Return JSON with this EXACT structure:
 - ✅ Recommend BEST solution (or respect constraint)
 - ✅ Include cost estimates when found
 - ✅ Cite sources for all AI solution information
+- ✅ Be efficient - quality over quantity in searches
 
 ### NEVER DO ❌
 - ❌ Make assumptions without evidence
 - ❌ Use generic phrases ("details not provided", "not available")
-- ❌ Recommend solutions without web search
+- ❌ Recommend solutions without at least one web search
 - ❌ Ignore the target platform constraint
 - ❌ Provide recommendations without detailed reasoning
-- ❌ Assume cloud provider without searching alternatives
-- ❌ Skip web searches to save time
+- ❌ Assume cloud provider without considering alternatives
+- ❌ Execute excessive searches (more than 5 total is wasteful)
 
 ## Example Scenarios
 

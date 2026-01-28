@@ -1,6 +1,6 @@
 /**
  * AI Validator Service - Anti-hallucination defense
- * Migrated from AICT
+ * POCkit Service
  *
  * Enforces strict confidence thresholds and citation validation
  * to prevent AI hallucinations in generated content.
