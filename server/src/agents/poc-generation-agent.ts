@@ -13,7 +13,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { buildPOCPrompt, POCFormat } from './prompts/poc-feasibility-template';
 import { getSessionData, logAgentExecution, saveGeneratedPoc } from './tools/database-tools';
 import { loadContextContents } from './tools/context-tools';
-import { frameworkTools } from './tools/framework-tools';
 import { createLogger } from '../config/logger';
 import type { POCGenerationOutput } from './types';
 
@@ -243,9 +242,8 @@ export class POCGenerationAgent {
     ];
 
     // Prepare tools for Claude
-    const tools: Anthropic.Tool[] = this.convertToolsForClaude([
-      ...frameworkTools,
-    ]);
+    // Note: Framework tools removed - context files provide framework knowledge directly
+    const tools: Anthropic.Tool[] = [];
 
     let finalResponse = '';
     let continueLoop = true;
@@ -361,28 +359,12 @@ You MUST generate the COMPLETE document following the template structure provide
   }
 
   /**
-   * Convert our tool format to Claude's tool format
-   */
-  private convertToolsForClaude(tools: any[]): Anthropic.Tool[] {
-    return tools.map(tool => ({
-      name: tool.name,
-      description: tool.description,
-      input_schema: tool.input_schema,
-    }));
-  }
-
-  /**
    * Execute a tool by name
+   * Note: Tool execution removed - no tools currently needed for POC generation
+   * Context files provide all framework knowledge directly in the prompt
    */
-  private async executeTool(toolName: string, input: any, sessionId: string): Promise<any> {
-    const allTools = [...frameworkTools];
-    const tool = allTools.find(t => t.name === toolName);
-
-    if (!tool) {
-      throw new Error(`Tool not found: ${toolName}`);
-    }
-
-    return await tool.execute(input);
+  private async executeTool(toolName: string, _input: any, _sessionId: string): Promise<any> {
+    throw new Error(`Tool execution not supported: ${toolName}`);
   }
 
   /**

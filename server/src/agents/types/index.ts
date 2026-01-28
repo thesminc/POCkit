@@ -107,33 +107,15 @@ export interface ConversationMessage {
 }
 
 // POC Generation Agent Types
-export interface FrameworkInfo {
-  id: string;
-  name: string;
-  version: string;
-  agentCount: number;
-  categories: string[];
-}
-
-export interface AgentRecommendation {
-  frameworkId: string;
-  frameworkName: string;
-  agentId: string;
-  agentName: string;
-  category: string;
-  purpose: string;
-  relevanceScore: number;
-  reasoning: string;
-  integrationMethod: 'PythonAPI' | 'MCP' | 'CLI' | 'HTTP';
-  estimatedTime?: string;
-  documentation?: string;
-}
+// Note: Removed FrameworkInfo and AgentRecommendation interfaces
+// Framework/agent recommendations now come from context files parsed as text
+// rather than database queries
 
 export interface POCGenerationOutput {
   content: string; // Markdown content
   includedSections: string[];
   aiSolutions: string[];
-  recommendedTools: AgentRecommendation[];
+  recommendedTools: any[]; // Simplified: extracted from POC markdown content
   citations: number;
   wordCount: number;
   pocId?: string; // POC database ID (returned after save)
